@@ -1,0 +1,70 @@
+---
+title: "PVA Introduction"
+author: "Matthew E. Aiello-Lammens"
+output: 
+  html_document: 
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Demographic models and population viability analysis (PVA)
+
+
+
+## Calculating a population growth rate
+
+Use census data from multi-year bottlenose dolphin census to calculate annual growth rates.
+
+```{r bobblenose_census, eval=FALSE}
+R <- rnorm(n = 25, mean = 1.05, sd = .01)
+
+n_init <- 1000
+n <- vector(length = length(R))
+
+n_old <- n_init
+for (t in 1:length(R)){
+  n_new <- n_old * R[t]
+  n[t] <- n_new
+  n_old <- n_new
+}
+
+n <- floor(n)
+
+n <- c(n_init, n)
+
+bottlenose_census <- data.frame( year = 1990:2015,
+                                 pop_size = n )
+
+write.csv(file = "bottlenose_census.csv", x = bottlenose_census)
+
+```
+
+
+## Simulating population growth
+
+### Bootstrap method
+
+### Statistical distribution methods
+
+
+
+## Calculating extinction risk and other measures
+
+
+
+## Considering other sources of variability
+
+
+## Caveats regarding PVA
+
+* Be careful
+* Only as good as data
+* "All models are wrong, but some are useful" George Box
+
+
+## Matrix projection models
+
+
