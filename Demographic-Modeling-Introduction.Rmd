@@ -16,10 +16,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Calculating a population growth rate
 
-Use census data from multi-year bottlenose dolphin census to calculate annual growth rates.
 
 ```{r bobblenose_census, eval=FALSE}
-R <- rnorm(n = 25, mean = 1.05, sd = .01)
+R <- rnorm(n = 25, mean = 1.05, sd = .1)
 
 n_init <- 1000
 n <- vector(length = length(R))
@@ -37,17 +36,129 @@ n <- c(n_init, n)
 bottlenose_census <- data.frame( year = 1990:2015,
                                  pop_size = n )
 
-write.csv(file = "bottlenose_census.csv", x = bottlenose_census)
+write.csv(file = "bottlenose_census.csv", x = bottlenose_census, row.names = FALSE)
 
 ```
 
+We will use census data from a multi-year bottlenose dolphin census to calculate annual growth rates.
+**NOTE: These data are made up for the purposes of this demonstration, and do not represent real population sizes for this species.**
 
+```{r}
+bottlenose_census <- read.csv(file = "https://raw.githubusercontent.com/mlammens/DemModel-ShortCourse/master/bottlenose_census.csv") 
+```
+
+Let's have a quick look at these data
+
+```{r}
+head(bottlenose_census)
+tail(bottlenose_census)
+summary(bottlenose_census)
+```
+
+Since we have 26 years worth of data, we should be able to calculate 25 R values.
+Recall the formula for R is:
+
+$$
+R = \frac{N(t+1)}{N(t)}
+$$
+
+```{r}
+bottlenose_R <- bottlenose_census$pop_size[2:length(bottlenose_census$pop_size)] /
+  bottlenose_census$pop_size[1:(length(bottlenose_census$pop_size) - 1)]
+```
+
+Let's look at those values by printing them out to the screen and looking at a few summaries.
+
+```{r}
+bottlenose_R
+
+min(bottlenose_R)
+max(bottlenose_R)
+```
+
+**Geometric mean of R**
+
+```{r}
+prod(bottlenose_R)^(1/length(bottlenose_R))
+```
+
+**Standard deviation of R**
+
+```{r}
+sd(bottlenose_R)
+```
+
+**Standard error of the mean**
+
+```{r}
+sd(bottlenose_R)/sqrt(length(bottlenose_R))
+```
 
 ## Simulating population growth
 
+OK. Let's now use this information to simulate the population change for bottlenose dolphins, assuming the past population growth rates are a reasonable representation of future population conditions.
+
+We will use two different methods to do this.
+
 ### Bootstrap method
 
+First, let's use a bootstrapping method, where we restrict our selves to using only observed R values.
 
+Assume that we want to forecast our population for 25 years.
+Then we need to draw 25 R values from our current set. 
+As this is bootstrapping for forecasting, we want to sample **with** replacement.
+
+```{r}
+bottlenose_R_proj <- sample(bottlenose_R, size = 25, replace = TRUE)
+```
+
+Let's look at our new values.
+
+```{r}
+bottlenose_R_proj
+min(bottlenose_R_proj)
+max(bottlenose_R_proj)
+```
+
+Geometric mean
+
+```{r}
+prod(bottlenose_R_proj)^(1/length(bottlenose_R_proj))
+```
+
+
+In order to use these values to forecast the population, we're going to need to use a `for` loop.
+
+```{r}
+# Set our initial value
+n_init <- 1000
+
+# Create a vector to store new values in
+n <- vector(length = length(bottlenose_R_proj))
+
+n_old <- n_init
+for (t in 1:length(bottlenose_R_proj)){
+  n_new <- n_old * bottlenose_R_proj[t]
+  n[t] <- n_new
+  n_old <- n_new
+}
+
+```
+
+Make a `data.frame` with these new values
+
+```{r}
+bottlenose_forecast_bs <- 
+  data.frame( year = seq(from = 2016, to = (2016 + length(bottlenose_R_proj) - 1)),
+              popsize = n )
+```
+
+
+Plot our values through time
+
+```{r}
+plot(x = bottlenose_forecast_bs$year, y = bottlenose_forecast_bs$popsize, type = "o")
+```
 
 ### Statistical distribution methods
 
