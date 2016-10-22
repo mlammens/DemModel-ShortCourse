@@ -1,8 +1,10 @@
 ---
 title: "Demographic Modeling Introduction"
 author: "Matthew E. Aiello-Lammens"
-output: 
-  html_document: 
+output:
+  pdf_document:
+    toc: yes
+  html_document:
     toc: yes
 ---
 
@@ -18,7 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r bobblenose_census, eval=FALSE}
-R <- rnorm(n = 25, mean = 1.05, sd = .1)
+R <- rnorm(n = 25, mean = 1.05, sd = .15)
 
 n_init <- 1000
 n <- vector(length = length(R))
@@ -160,15 +162,158 @@ Plot our values through time
 plot(x = bottlenose_forecast_bs$year, y = bottlenose_forecast_bs$popsize, type = "o")
 ```
 
-### Statistical distribution methods
-
-
 
 ## Calculating extinction risk and other measures
 
+The work above gave us one possible trajectory for this population, but in order to really say something about what we might expect in the future, we need to run this simulation 100s or 1000s of times, and use those values to make probablistic statements.
+
+Let's run 1000 simulations.
+
+First generate 1000 * 25 R values.
+
+```{r}
+bottlenose_R_proj_multi <- sample(bottlenose_R, size = (1000*25), replace = TRUE)
+```
+
+Make these into a 2D matrix
+
+```{r}
+bottlenose_R_proj_multi <- matrix(bottlenose_R_proj_multi, nrow = 25, byrow = FALSE)
+```
+
+In order to run these simulations 1000 times, we're going to use a `for` loop inside another `for` loop.
+
+Let's start by making an empty matrix to store all of our simulation results.
+This matrix needs to have 25 rows and 1000 columns.
+
+```{r}
+bottlenose_forecast_bs_multi <- matrix(rep(NA, 1000*25), nrow = 25 )
+```
+
+Why did I use NAs here?
+
+Let's make that double `for` loop.
+
+```{r}
+# Set our initial value
+n_init <- 1000
+n_sims <- ncol(bottlenose_forecast_bs_multi)
+
+for( sim in 1:n_sims){
+
+  # Create a vector to store new values in
+  n <- vector(length = nrow(bottlenose_R_proj_multi))
+  
+  n_old <- n_init
+  for (t in 1:nrow(bottlenose_R_proj_multi)){
+    n_new <- n_old * bottlenose_R_proj_multi[t, sim]
+    n[t] <- n_new
+    n_old <- n_new
+  }
+  
+  bottlenose_forecast_bs_multi[ , sim] <- n
+}
+```
 
 
-## Considering other sources of variability
+Add the initial value as a new **first** row.
+
+```{r}
+bottlenose_forecast_bs_multi <- rbind(rep(n_init, n_sims), bottlenose_forecast_bs_multi)
+```
+
+
+Let's plot all of the simulations.
+
+```{r}
+matplot(x = 2015:2040, y = bottlenose_forecast_bs_multi, type = "l")
+```
+
+
+We can determine the number of simulations where the population goes extinct by looking for how many populations are 0 individuals after 25 years.
+
+```{r}
+sum(bottlenose_forecast_bs_multi[26, ] == 0)
+```
+
+How about less than some threshold value? Let's say 500.
+
+```{r}
+sum(bottlenose_forecast_bs_multi[26, ] < 700)
+```
+
+We can use these values to calculate the probability of this event happening.
+In this case, the probability of decline to below 700 individuals is:
+
+```{r}
+sum(bottlenose_forecast_bs_multi[26, ] < 700) / n_sims
+```
+
+
+Another useful statistic is the **Expected Minimum Abundance**. 
+Calculating this value will give us a chance to become familiar with a few more R functions.
+
+In order to calculate the EMA, we first need to calculate the minimum value for each simulation.
+
+```{r}
+bottlenose_forecast_min <- apply(X = bottlenose_forecast_bs_multi, MARGIN = 2, FUN = min)
+```
+
+Next we can calculate the average minimum value.
+
+```{r}
+mean(bottlenose_forecast_min)
+```
+
+## Challange
+
+1. What happens if the population size is much smaller? Say 100 individuals?
+2. What happens if boat tours lead to a 0.025 reduction in population growth rate?
+
+
+
+## Using statistical distribution methods
+
+Instead of bootstrapping, we could parameterize a statistical distribution with the data we've collected.
+
+```{r}
+bottlenose_R_proj <- rlnorm(25, meanlog = log(prod(bottlenose_R)^(1/length(bottlenose_R))), sdlog = sd(bottlenose_R))
+```
+
+**Repeat steps as above**
+
+In order to use these values to forecast the population, we're going to need to use a `for` loop.
+
+```{r}
+# Set our initial value
+n_init <- 1000
+
+# Create a vector to store new values in
+n <- vector(length = length(bottlenose_R_proj))
+
+n_old <- n_init
+for (t in 1:length(bottlenose_R_proj)){
+  n_new <- n_old * bottlenose_R_proj[t]
+  n[t] <- n_new
+  n_old <- n_new
+}
+
+```
+
+Make a `data.frame` with these new values
+
+```{r}
+bottlenose_forecast_bs <- 
+  data.frame( year = seq(from = 2016, to = (2016 + length(bottlenose_R_proj) - 1)),
+              popsize = n )
+```
+
+
+Plot our values through time
+
+```{r}
+plot(x = bottlenose_forecast_bs$year, y = bottlenose_forecast_bs$popsize, type = "o")
+```
 
 
 ## Caveats regarding PVA
@@ -179,5 +324,8 @@ plot(x = bottlenose_forecast_bs$year, y = bottlenose_forecast_bs$popsize, type =
 
 
 ## Matrix projection models
+
+
+## Considering other sources of variability
 
 

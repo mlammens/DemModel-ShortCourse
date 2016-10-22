@@ -1,0 +1,176 @@
+---
+title: "Crash Course in R"
+author: "Matthew E. Aiello-Lammens"
+output: pdf_document
+---
+
+
+## Use a script file
+
+Let's all make a new directory to work in today. 
+
+Let's create a new script file in that directory.
+
+Scripts make it easier to repeat your work. You can also add comments using the pound sign.
+
+Short cut to execute commands and functions:
+
+Mac:
+[Command] + return
+
+Windows
+[Control] + return (RStudio)
+[Control] + r (R gui)
+
+
+### Setting your working directory
+
+```{r, eval=FALSE}
+setwd("[your dir name here]")
+```
+
+
+## R as a calculator
+
+```{r}
+5 + 3
+
+8^3
+
+6*3-1
+
+# Order of operations follows PEMDAS
+6*(3-1)
+```
+
+## Variables
+
+We can save things within our session as **variables**
+
+```{r}
+pop_1 <- 1200
+pop_2 <- 500
+
+pop_total <- pop_1 + pop_2
+
+pop_1 * 2
+
+# Etc.
+```
+
+### Challange
+
+I chagne pop_1
+
+```{r}
+pop_1 <- 2000
+```
+
+What is `pop_total` now?
+
+
+## Loading Data
+
+Best to use the full path to your data, but could also change into the directory you're data is in, then call it in there.
+
+
+```{r}
+bottlenose <- read.csv(file = "~/Dropbox/Projects/SCCC-Stats-Workshop/Symons_data.csv")
+```
+
+
+Let's have a look at these data
+
+```{r}
+head(bottlenose)
+
+tail(bottlenose)
+
+summary(bottlenose)
+
+names(bottlenose)
+
+str(bottlenose)
+```
+
+
+## Subsetting data
+
+Let's work with only a subset of this data, selecting from the `data.frame` by columns.
+
+```{r}
+bottlenose_subset <- bottlenose[c("divetime", "logdivetime", "bouts")]
+```
+
+What if we wanted to subset by row/column number?
+
+```{r}
+bottlenose_subset[1, 1]
+bottlenose_subset[5, 2]
+```
+
+Let's get a specific row.
+
+```{r}
+bottlenose_subset[3, ]
+```
+
+And a whole column
+
+```{r, results='hide'}
+bottlenose_subset[ , 2 ]
+```
+
+Just part of the column
+
+```{r}
+bottlenose_subset[1:10, 2 ]
+```
+
+
+Specific rows
+
+```{r}
+bottlenose_subset[c(3, 5, 7), ]
+```
+
+
+## Simple calculations / built-in functions
+
+Some statistics of note.
+
+```{r}
+mean(bottlenose_subset$divetime)
+max(bottlenose_subset$divetime)
+median(bottlenose_subset$divetime)
+```
+
+What about getting this for all three columns at once?
+
+```{r}
+apply(X = bottlenose_subset, MARGIN = 2, FUN = mean)
+```
+
+We could also do this by row.
+
+```{r, results='hide'}
+apply(X = bottlenose_subset, MARGIN = 1, FUN = mean)
+```
+
+But we should be careful, because in this case, it doesn't make any sense to do this.
+
+### Challenge
+
+Use indexing and the functions we just learned to determin the mean, min, and max of rows 21 to 45.
+
+
+## Simple plots
+
+```{r}
+plot(x = bottlenose_subset$bouts, y = bottlenose_subset$divetime)
+```
+
+
+### Challenge
+
+Plot only the values from rows 21 to 45.
