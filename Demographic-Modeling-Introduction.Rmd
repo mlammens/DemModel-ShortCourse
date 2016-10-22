@@ -2,9 +2,9 @@
 title: "Demographic Modeling Introduction"
 author: "Matthew E. Aiello-Lammens"
 output:
-  pdf_document:
-    toc: yes
   html_document:
+    toc: yes
+  pdf_document:
     toc: yes
 ---
 
@@ -46,7 +46,8 @@ We will use census data from a multi-year bottlenose dolphin census to calculate
 **NOTE: These data are made up for the purposes of this demonstration, and do not represent real population sizes for this species.**
 
 ```{r}
-bottlenose_census <- read.csv(file = "https://raw.githubusercontent.com/mlammens/DemModel-ShortCourse/master/bottlenose_census.csv") 
+#bottlenose_census <- read.csv(file = "https://raw.githubusercontent.com/mlammens/DemModel-ShortCourse/master/bottlenose_census.csv") 
+bottlenose_census <- read.csv(file = "~/Google Drive/Professional/Demographic-Modeling-Short-Course/bottlenose_census.csv")
 ```
 
 Let's have a quick look at these data
@@ -165,7 +166,7 @@ plot(x = bottlenose_forecast_bs$year, y = bottlenose_forecast_bs$popsize, type =
 
 ## Calculating extinction risk and other measures
 
-The work above gave us one possible trajectory for this population, but in order to really say something about what we might expect in the future, we need to run this simulation 100s or 1000s of times, and use those values to make probablistic statements.
+The work above gave us one possible trajectory for this population, but in order to really say something about what we might expect in the future, we need to run this simulation 100s or 1000s of times, and use those values to make probabilistic statements.
 
 Let's run 1000 simulations.
 
@@ -326,6 +327,40 @@ plot(x = bottlenose_forecast_bs$year, y = bottlenose_forecast_bs$popsize, type =
 ## Matrix projection models
 
 
+Let's parameterize a projection matrix.
+
+```{r}
+bottlenose_mat <- matrix(c(0.3, 1, 0.2, 0.8), nrow = 2, byrow = TRUE)
+eigen(bottlenose_mat)
+```
+
+Set an initial population size - but now it must be separated by age/stage.
+
+```{r}
+n_init_stage <- c(500,500)
+```
+
+
+Get the abundance for each stage at the next time-step.
+
+```{r}
+bottlenose_mat %*% n_init_stage
+```
+
+### Challenge
+
+Write a `for` loop to forecast the population size changes of the bottlenose dolphin population 25 years into the future.
+
 ## Considering other sources of variability
 
+### Environmental
 
+Similar to how we did it above, but sample for each parameter, rather than R.
+
+## Demographic
+
+Nature happens in whole numbers.
+
+If we have estimates of variability for reproduction, we can use a Poisson distribution to determine the number of births.
+
+We can use binomial distribution to determine the number of deaths.
