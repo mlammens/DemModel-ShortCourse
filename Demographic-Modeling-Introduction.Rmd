@@ -1,5 +1,5 @@
 ---
-title: "PVA Introduction"
+title: "Demographic Modeling Introduction"
 author: "Matthew E. Aiello-Lammens"
 output: 
   html_document: 
@@ -32,7 +32,6 @@ for (t in 1:length(R)){
 }
 
 n <- floor(n)
-
 n <- c(n_init, n)
 
 bottlenose_census <- data.frame( year = 1990:2015,
@@ -43,9 +42,12 @@ write.csv(file = "bottlenose_census.csv", x = bottlenose_census)
 ```
 
 
+
 ## Simulating population growth
 
 ### Bootstrap method
+
+
 
 ### Statistical distribution methods
 
